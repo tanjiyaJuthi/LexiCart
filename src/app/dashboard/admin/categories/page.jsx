@@ -7,7 +7,7 @@ import {
     Table,
     Button,
     Card,
-    Modal,
+    Modal
 } from "@heroui/react";
 
 import {
@@ -19,10 +19,17 @@ import {
 import { authClient } from "@/lib/auth-client";
 import Image from "next/image";
 import Loading from "@/app/loading";
+import Pagination from "@/components/Pagination";
 
 
 const CategoriesPage = () => {
     const router = useRouter();
+
+    const [page, setPage] = useState(1);
+    const [pagination, setPagination] = useState({
+    totalPages: 1,
+    });
+    const limit = 10;
     
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -36,18 +43,19 @@ const CategoriesPage = () => {
             const { data: tokenData } = await authClient.token();
 
             const res = await fetch(
-                `${process.env.NEXT_PUBLIC_BASE_URL}/api/category`,
-                {
-                    headers: {
-                        Authorization: `Bearer ${tokenData?.token}`,
-                    },
-                }
+            `${process.env.NEXT_PUBLIC_BASE_URL}/api/category?page=${page}&limit=${limit}`,
+            {
+                headers: {
+                Authorization: `Bearer ${tokenData?.token}`,
+                },
+            }
             );
 
             const data = await res.json();
 
             if (res.ok) {
-                setCategories(data.data);
+            setCategories(data.data);
+            setPagination(data.pagination);
             }
         } catch (error) {
             console.log(error);
@@ -58,7 +66,7 @@ const CategoriesPage = () => {
 
     useEffect(() => {
         fetchCategories();
-    }, []);
+    }, [page]);
 
     const openDeleteModal = (category) => {
         setSelectedCategory(category);
@@ -166,7 +174,8 @@ const CategoriesPage = () => {
                                                 src={item.image}
                                                 alt={item.name}
                                                 className="w-12 h-12 rounded-lg object-cover"
-                                                fill
+                                                width={100}
+                                                height={100}
                                                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                                             />
                                         </Table.Cell>
@@ -259,6 +268,14 @@ const CategoriesPage = () => {
                     </Modal.Container>
                 </Modal.Backdrop>
             </Modal>
+
+            <div className="flex justify-center mt-6">
+                <Pagination
+                    page={page}
+                    setPage={setPage}
+                    pagination={pagination}
+                />
+            </div>
         </Card>
 
     );
