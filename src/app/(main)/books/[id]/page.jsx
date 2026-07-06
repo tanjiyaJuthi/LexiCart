@@ -31,110 +31,170 @@ const BookDetailPage = () => {
   const [myRating, setMyRating] = useState(null);
   const hasReviewed = !!myComment && !!myRating;
 
+  // coupon application
+  const [couponCode, setCouponCode] = useState("");
+  const [discount, setDiscount] = useState(0);
+  const [finalAmount, setFinalAmount] = useState(book?.deliveryFee || 0);
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [couponApplied, setCouponApplied] = useState(false);
+
   const { id } = useParams();
 
-  const fetchBook = async () => {
-    try {
-      setLoading(true);
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_URL}/api/book/${id}`,
-      );
-      const data = await res.json();
-
-      if (data.success) {
-        setBook(data.data);
-      }
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchReviews = async () => {
-    try {
-      const [commentsRes, ratingsRes] = await Promise.all([
-        fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/comment/book/${id}`),
-        fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/rating/book/${id}`),
-      ]);
-
-      const commentsData = await commentsRes.json();
-      const ratingsData = await ratingsRes.json();
-
-      if (commentsData.success) {
-        setComments(commentsData.data);
-      }
-
-      if (ratingsData.success) {
-        setRatings(ratingsData.data);
-      }
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
   useEffect(() => {
+    const fetchBook = async () => {
+      try {
+        setLoading(true);
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_BASE_URL}/api/book/${id}`,
+        );
+        const data = await res.json();
+
+        if (data.success) {
+          setBook(data.data);
+        }
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const fetchReviews = async () => {
+      try {
+        const [commentsRes, ratingsRes] = await Promise.all([
+          fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/comment/book/${id}`),
+          fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/rating/book/${id}`),
+        ]);
+
+        const commentsData = await commentsRes.json();
+        const ratingsData = await ratingsRes.json();
+
+        if (commentsData.success) {
+          setComments(commentsData.data);
+        }
+
+        if (ratingsData.success) {
+          setRatings(ratingsData.data);
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
     fetchBook();
     fetchReviews();
   }, [id]);
 
-  const fetchMyReview = async () => {
-    const { data: tokenData } = await authClient.token();
-
-    const [commentRes, ratingRes] = await Promise.all([
-      fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/comment/book/${id}/me`, {
-        headers: {
-          Authorization: `Bearer ${tokenData.token}`,
-        },
-      }),
-      fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/rating/book/${id}/me`, {
-        headers: {
-          Authorization: `Bearer ${tokenData.token}`,
-        },
-      }),
-    ]);
-
-    const comment = await commentRes.json();
-    const rating = await ratingRes.json();
-
-    setMyComment(comment.data);
-    setMyRating(rating.data);
-  };
-
   useEffect(() => {
     if (user?.role === "reader") {
+      const fetchMyReview = async () => {
+        const { data: tokenData } = await authClient.token();
+
+        const [commentRes, ratingRes] = await Promise.all([
+          fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/comment/book/${id}/me`, {
+            headers: {
+              Authorization: `Bearer ${tokenData.token}`,
+            },
+          }),
+          fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/rating/book/${id}/me`, {
+            headers: {
+              Authorization: `Bearer ${tokenData.token}`,
+            },
+          }),
+        ]);
+
+        const comment = await commentRes.json();
+        const rating = await ratingRes.json();
+
+        setMyComment(comment.data);
+        setMyRating(rating.data);
+      };
+
       fetchMyReview();
     }
   }, [id, user]);
 
   const [canReview, setCanReview] = useState(false);
 
-  const checkPermission = async () => {
-    try {
-      const { data: tokenData } = await authClient.token();
-
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_URL}/api/review/permission/${book._id}`,
-        {
-          headers: {
-            Authorization: `Bearer ${tokenData.token}`,
-          },
-        },
-      );
-
-      const data = await res.json();
-      setCanReview(data.canReview);
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
   useEffect(() => {
     if (!user || !book?._id) return;
+    const checkPermission = async () => {
+      try {
+        const { data: tokenData } = await authClient.token();
+
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_BASE_URL}/api/review/permission/${book._id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${tokenData.token}`,
+            },
+          },
+        );
+
+        const data = await res.json();
+        setCanReview(data.canReview);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
     checkPermission();
   }, [user, book]);
 
+  // coupon
+  useEffect(() => {
+    if (book) {
+      setFinalAmount(book.deliveryFee);
+    }
+  }, [book]);
+
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) return toast.error("Enter coupon code");
+
+    try {
+      setCouponLoading(true);
+
+      const { data: tokenData } = await authClient.token();
+
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/api/coupon/validate`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type":"application/json",
+            Authorization:`Bearer ${tokenData.token}`,
+          },
+          body: JSON.stringify({
+            code: couponCode,
+            subtotal: book.deliveryFee,
+          }),
+          }
+        );
+
+      const data = await res.json();
+
+      if (!data.success) {
+        throw new Error(data.message);
+      }
+
+      setDiscount(data.data.discount);
+      setFinalAmount(data.data.total);
+      setCouponApplied(true);
+
+      toast.success("Coupon applied");
+    } catch (err) {
+      setDiscount(0);
+      setFinalAmount(book.deliveryFee);
+      setCouponApplied(false);
+
+      toast.error(err.message);
+    } finally {
+      setCouponLoading(false);
+    }
+  };
+
   if (loading) return <Loading />;
+
   if (!book)
     return (
       <div className="max-w-7xl mx-auto my-20">
@@ -171,6 +231,9 @@ const BookDetailPage = () => {
 
           body: JSON.stringify({
             bookId: book._id,
+            couponCode: couponApplied
+              ? couponCode
+              : undefined,
           }),
         },
       );
@@ -251,11 +314,11 @@ const BookDetailPage = () => {
             <h1 className="text-3xl md:text-5xl font-semibold tracking-wide">
               {book.title}
             </h1>
-            {/* Blue Ribbon Accent Divider Design Line */}
+            
             <div className="flex items-center gap-1 mt-4">
               <div className="w-3 h-3 bg-[#ef0161] rotate-45" />
               <div className="w-3 h-3 bg-[#ef0161] rotate-45 -ml-1.5" />
-              <div className="h-[2px] bg-[#ef0161] w-48 ml-1" />
+              <div className="h-0.5 bg-[#ef0161] w-48 ml-1" />
             </div>
           </div>
 
@@ -284,7 +347,6 @@ const BookDetailPage = () => {
               </div>
             </div>
 
-            {/* Description Paragraph Container */}
             <div className="pt-2">
               <div className="flex items-center gap-2 text-sm font-semibold text-gray-600 tracking-wide uppercase">
                 <div className="w-2.5 h-2.5 bg-[#ef0161] rotate-45" />{" "}
@@ -296,7 +358,6 @@ const BookDetailPage = () => {
               </p>
             </div>
 
-            {/* Ratings Summary Deck */}
             <div className="pt-2">
               <div className="flex items-center gap-2 text-sm font-semibold text-gray-600 tracking-wide uppercase">
                 <div className="w-2.5 h-2.5 bg-[#ef0161] rotate-45" /> Rating
@@ -306,7 +367,23 @@ const BookDetailPage = () => {
               </div>
             </div>
 
-            {/* Action Operations Controller Drawer */}
+            <div className="mt-5 flex gap-3">
+              <input
+                type="text"
+                value={couponCode}
+                onChange={(e) => setCouponCode(e.target.value)}
+                placeholder="Coupon code"
+                className="border rounded-lg px-3 py-2 flex-1"
+              />
+
+              <Button
+                  onClick={handleApplyCoupon}
+                  isLoading={couponLoading}
+              >
+                  Apply
+              </Button>
+            </div>
+
             <div className="pt-4 flex flex-wrap gap-4 items-center">
               {!isOwner && (
                 <Button
@@ -322,6 +399,27 @@ const BookDetailPage = () => {
                     ? "Unavailable"
                     : `Request Delivery (৳${book.deliveryFee})`}
                 </Button>
+              )}
+            </div>
+
+            <div className="mt-4 space-y-2">
+              <div className="flex justify-between">
+                  <span>Delivery Fee</span>
+                  <span>${book.deliveryFee}</span>
+              </div>
+
+              {couponApplied && (
+                <>
+                  <div className="flex justify-between text-green-600">
+                    <span>Discount</span>
+                    <span>-৳{discount}</span>
+                  </div>
+
+                  <div className="flex justify-between font-semibold">
+                    <span>Total</span>
+                    <span>৳{finalAmount}</span>
+                  </div>
+                </>
               )}
             </div>
           </div>
