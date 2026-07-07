@@ -62,6 +62,7 @@ const SideNav = ({
       { name: "Dashboard", href: "/dashboard/librarian", icon: Settings },
       { name: "Profile", href: "/dashboard/librarian/profile", icon: Users },
       { name: "Books", href: "/dashboard/librarian/books", icon: Store },
+      { name: "Coupons", href: "/dashboard/librarian/coupons", icon: Package },
       { name: "Deliveris", href: "/dashboard/librarian/delivery", icon: ShoppingCart },
     ],
 
