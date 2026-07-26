@@ -70,7 +70,7 @@ const ProfilePage = () => {
   return (
     <div className="min-h-screen">
         {/* Cover */}
-        <div className="relative h-52 rounded-xl bg-[#ef0161">
+        <div className="relative h-52 rounded-xl bg-[#ef0161]">
           <div className="absolute -bottom-16 left-10">
             <Avatar
               src={profile?.image || "/images/fallback.jpg"}
