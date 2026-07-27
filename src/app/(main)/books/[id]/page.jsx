@@ -1,8 +1,6 @@
 "use client";
 
-import { Edit, EyeOff, Trash2 } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import Loading from "@/app/loading";
@@ -91,16 +89,22 @@ const BookDetailPage = () => {
         const { data: tokenData } = await authClient.token();
 
         const [commentRes, ratingRes] = await Promise.all([
-          fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/comment/book/${id}/me`, {
-            headers: {
-              Authorization: `Bearer ${tokenData.token}`,
+          fetch(
+            `${process.env.NEXT_PUBLIC_BASE_URL}/api/comment/book/${id}/me`,
+            {
+              headers: {
+                Authorization: `Bearer ${tokenData.token}`,
+              },
             },
-          }),
-          fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/rating/book/${id}/me`, {
-            headers: {
-              Authorization: `Bearer ${tokenData.token}`,
+          ),
+          fetch(
+            `${process.env.NEXT_PUBLIC_BASE_URL}/api/rating/book/${id}/me`,
+            {
+              headers: {
+                Authorization: `Bearer ${tokenData.token}`,
+              },
             },
-          }),
+          ),
         ]);
 
         const comment = await commentRes.json();
@@ -161,15 +165,15 @@ const BookDetailPage = () => {
         {
           method: "POST",
           headers: {
-            "Content-Type":"application/json",
-            Authorization:`Bearer ${tokenData.token}`,
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${tokenData.token}`,
           },
           body: JSON.stringify({
             code: couponCode,
             subtotal: book.deliveryFee,
           }),
-          }
-        );
+        },
+      );
 
       const data = await res.json();
 
@@ -231,9 +235,7 @@ const BookDetailPage = () => {
 
           body: JSON.stringify({
             bookId: book._id,
-            couponCode: couponApplied
-              ? couponCode
-              : undefined,
+            couponCode: couponApplied ? couponCode : undefined,
           }),
         },
       );
@@ -243,7 +245,7 @@ const BookDetailPage = () => {
       if (data.success) {
         window.location.href = data.url;
 
-        toast.success('Book has sent for delivery!');
+        toast.success("Book has sent for delivery!");
       }
     } catch (error) {
       console.error(error);
@@ -314,7 +316,7 @@ const BookDetailPage = () => {
             <h1 className="text-3xl md:text-5xl font-semibold tracking-wide">
               {book.title}
             </h1>
-            
+
             <div className="flex items-center gap-1 mt-4">
               <div className="w-3 h-3 bg-[#ef0161] rotate-45" />
               <div className="w-3 h-3 bg-[#ef0161] rotate-45 -ml-1.5" />
@@ -373,14 +375,15 @@ const BookDetailPage = () => {
                 value={couponCode}
                 onChange={(e) => setCouponCode(e.target.value)}
                 placeholder="Coupon code"
-                className="border rounded-lg px-3 py-2 flex-1"
+                className="border rounded-xl h-9.5 p-1"
               />
 
               <Button
-                  onClick={handleApplyCoupon}
-                  isLoading={couponLoading}
-              >
-                  Apply
+                onClick={handleApplyCoupon}
+                isLoading={couponLoading}
+                type="button"
+                className="w-full h-9.5 bg-[#f10262] text-white rounded-xl"              >
+                Apply
               </Button>
             </div>
 
@@ -404,8 +407,8 @@ const BookDetailPage = () => {
 
             <div className="mt-4 space-y-2">
               <div className="flex justify-between">
-                  <span>Delivery Fee</span>
-                  <span>${book.deliveryFee}</span>
+                <span>Delivery Fee</span>
+                <span>${book.deliveryFee}</span>
               </div>
 
               {couponApplied && (
