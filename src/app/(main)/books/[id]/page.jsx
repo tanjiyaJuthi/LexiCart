@@ -25,6 +25,8 @@ const BookDetailPage = () => {
   const [comments, setComments] = useState([]);
   const [ratings, setRatings] = useState([]);
 
+  const [showCoupon, setShowCoupon] = useState(false);
+
   const [myComment, setMyComment] = useState(null);
   const [myRating, setMyRating] = useState(null);
   const hasReviewed = !!myComment && !!myRating;
@@ -317,10 +319,10 @@ const BookDetailPage = () => {
               {book.title}
             </h1>
 
-            <div className="flex items-center gap-1 mt-4">
+            <div className="flex items-center mt-4">
               <div className="w-3 h-3 bg-[#ef0161] rotate-45" />
               <div className="w-3 h-3 bg-[#ef0161] rotate-45 -ml-1.5" />
-              <div className="h-0.5 bg-[#ef0161] w-48 ml-1" />
+              <div className="ml-2 h-[2px] w-48 bg-[#ef0161]" />
             </div>
           </div>
 
@@ -369,26 +371,48 @@ const BookDetailPage = () => {
               </div>
             </div>
 
-            <div className="mt-5 flex gap-3">
-              <input
-                type="text"
-                value={couponCode}
-                onChange={(e) => setCouponCode(e.target.value)}
-                placeholder="Coupon code"
-                className="border rounded-xl h-9.5 p-1"
-              />
+            <div className="pt-2">
+              <div className="flex items-center gap-2 text-sm font-semibold text-gray-600 tracking-wide uppercase">
+                <div className="w-2.5 h-2.5 bg-[#ef0161] rotate-45" />
+                Coupon
+              </div>
 
-              <Button
-                onClick={handleApplyCoupon}
-                isLoading={couponLoading}
-                type="button"
-                className="w-full h-9.5 bg-[#f10262] text-white rounded-xl"              >
-                Apply
-              </Button>
+              <div className="mt-3 pl-4">
+                <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={showCoupon}
+                    onChange={(e) => setShowCoupon(e.target.checked)}
+                    className="bg-[#ef0161]"
+                  />
+                  Do you have a coupon code?
+                </label>
+
+                {showCoupon && (
+                  <div className="flex gap-3">
+                    <input
+                      type="text"
+                      value={couponCode}
+                      onChange={(e) => setCouponCode(e.target.value)}
+                      placeholder="Enter coupon code"
+                      className="flex-1 h-10 rounded-xl border px-3 focus:outline-none focus:border-[#ef0161]"
+                    />
+
+                    <Button
+                      onClick={handleApplyCoupon}
+                      isLoading={couponLoading}
+                      type="button"
+                      className="h-10 px-6 bg-[#ef0161] text-white rounded-xl"
+                    >
+                      Apply
+                    </Button>
+                  </div>
+                )}
+              </div>
             </div>
 
-            <div className="pt-4 flex flex-wrap gap-4 items-center">
-              {!isOwner && (
+            {!isOwner && (
+              <div className="pt-2 flex flex-wrap gap-4 items-center">
                 <Button
                   onClick={handleTransaction}
                   disabled={isUnavailable}
@@ -400,30 +424,37 @@ const BookDetailPage = () => {
                 >
                   {isUnavailable
                     ? "Unavailable"
-                    : `Request Delivery (৳${book.deliveryFee})`}
+                    : `Request Delivery ($ ${book.deliveryFee})`}
                 </Button>
-              )}
-            </div>
+              </div>
+            )}
 
-            <div className="mt-4 space-y-2">
-              <div className="flex justify-between">
-                <span>Delivery Fee</span>
-                <span>${book.deliveryFee}</span>
+            <div className="pt-2">
+              <div className="flex items-center gap-2 text-sm font-semibold text-gray-600 tracking-wide uppercase">
+                <div className="w-2.5 h-2.5 bg-[#ef0161] rotate-45" />
+                Delivery Details
               </div>
 
-              {couponApplied && (
-                <>
-                  <div className="flex justify-between text-green-600">
-                    <span>Discount</span>
-                    <span>-৳{discount}</span>
-                  </div>
+              <div className="mt-3 space-y-2 pl-4">
+                <div className="flex gap-2 ">
+                  <span className="text-gray-500">Delivery Fee: </span>
+                  <span className="font-medium">$ {book.deliveryFee}</span>
+                </div>
 
-                  <div className="flex justify-between font-semibold">
-                    <span>Total</span>
-                    <span>৳{finalAmount}</span>
-                  </div>
-                </>
-              )}
+                {couponApplied && (
+                  <>
+                    <div className="flex justify-between text-green-600">
+                      <span>Discount</span>
+                      <span>-$ {discount}</span>
+                    </div>
+
+                    <div className="flex justify-between font-semibold text-gray-800 border-t pt-2">
+                      <span>Total</span>
+                      <span>$ {finalAmount}</span>
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         </div>
