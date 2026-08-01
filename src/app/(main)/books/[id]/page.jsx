@@ -389,13 +389,13 @@ const BookDetailPage = () => {
                 </label>
 
                 {showCoupon && (
-                  <div className="flex gap-3">
+                  <div className="flex gap-3 pt-2">
                     <input
                       type="text"
                       value={couponCode}
                       onChange={(e) => setCouponCode(e.target.value)}
                       placeholder="Enter coupon code"
-                      className="flex-1 h-10 rounded-xl border px-3 focus:outline-none focus:border-[#ef0161]"
+                      className="w-full max-w-xs flex-1 h-10 rounded-xl border px-3 focus:outline-none focus:border-[#ef0161]"
                     />
 
                     <Button
